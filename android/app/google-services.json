@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "472387679786",
+    "project_id": "wallpix-22231",
+    "storage_bucket": "wallpix-22231.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472387679786:android:246e7c5be7b4f513cfb553",
+        "android_client_info": {
+          "package_name": "com.ytc.wallpix"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "472387679786-mprvlv4jrbtuuqq7lls4pa43tjmi7ser.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ytc.wallpix",
+            "certificate_hash": "5a5928fe1aeac755370f967172ebd1e1ef250fe6"
+          }
+        },
+        {
+          "client_id": "472387679786-3l62cac736cvnmq6ldu7g246ogc1vsqv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkAvFzQNGuR5ArwpLq1BBcEqPfgZNuWfo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "472387679786-3l62cac736cvnmq6ldu7g246ogc1vsqv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
