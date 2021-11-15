@@ -1,4 +1,13 @@
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+
 
 class FullScreen extends StatefulWidget {
   var link;
@@ -10,10 +19,75 @@ class FullScreen extends StatefulWidget {
 
 class _FullScreenState extends State<FullScreen> {
 
-
-
-
   var setwallRowOpened = false;
+  var progWidth = 0.0;
+  var progressText = "WallPix";
+
+  static const platform = const MethodChannel("com.flutter.epic/epic");
+
+
+
+// function to store image to gallery
+  _save() async{
+
+    setState(() {
+      progWidth = 40.0;
+    });
+    var status = await Permission.storage.request();
+    if (status.isGranted){
+       var response = await Dio().get(
+          widget.link, options: Options(responseType: ResponseType.bytes)
+       );
+
+       final result =  await ImageGallerySaver.saveImage(Uint8List.fromList(response.data));
+
+       return result;
+    }
+    else if (status.isDenied){
+      throw("You need to give storage permission");
+    }
+    else if(status.isRestricted){
+      openAppSettings();
+    }
+  }
+
+// function to save the image in local/ temp memory
+ Future _download(var type, var width) async{
+    Dio dio =  Dio();
+    try{
+      var dir = await getTemporaryDirectory();
+        await dio.download(widget.link, "${dir.path}/wallpix.jpeg",
+
+        onReceiveProgress: (rec,total){
+          var progress;
+          setState(() {
+            progress = (rec/total) * 100;
+            // progressText = progress.toString();
+            progWidth = (progress/100) * width;
+          });
+          if (progress == 100) _setWallpaper(type);
+        }
+      );
+    }catch(_){}
+  }
+
+
+  // This function will ber called when the image is saved to the local memory and ready to set Wallper
+  Future _setWallpaper(var type)async{
+    try {
+      var result = await platform.invokeMethod(
+        "setWall", "wallpix.jpeg $type"
+      );
+      setState((){
+        progressText = "Wallpaper Set Sucessfully";
+      });
+    } on PlatformException catch(_){
+      setState(() {
+        progressText = "Failed to Set Wallpaper";
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +143,16 @@ class _FullScreenState extends State<FullScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton(
-                    onPressed: null,
+                    onPressed: () async{
+                     var u = await _save();
+                     if(u!= null){
+                       setState(() {
+                         progWidth = width;
+                         progressText = "Wallpaper saved sucessfully";
+                       });
+                     }
+
+                    },
                     icon: Icon(
                         Icons.file_download,
                         color: Colors.black,
@@ -114,7 +197,9 @@ class _FullScreenState extends State<FullScreen> {
                       // button for setting wallpaper at Homescreen
 
                       InkWell(
-                        onTap: null,
+                        onTap: (){
+                          _download("home",width);
+                        },
                         child: Container(
                           height: 33,
                           alignment: Alignment.center,
@@ -131,7 +216,9 @@ class _FullScreenState extends State<FullScreen> {
 
                       // Button for lockscreen
                       InkWell(
-                        onTap: null,
+                        onTap: (){
+                          _download("lock",width);
+                        },
                         child: Container(
                           height: 33,
                           alignment: Alignment.center,
@@ -148,7 +235,9 @@ class _FullScreenState extends State<FullScreen> {
 
                           // Button for both the screens
                           InkWell(
-                          onTap: null,
+                           onTap: (){
+                            _download("both",width);
+                           },
                           child: Container(
                             height: 33,
                             alignment: Alignment.center,
@@ -169,24 +258,33 @@ class _FullScreenState extends State<FullScreen> {
               ),
 
               // set wallpaper and download wallpaper progress indicator
-              AnimatedContainer(
-                duration: Duration(
-                  milliseconds: 50,
-                ),
-                height: 50,
-                width: width,
-                color: Colors.cyan,
-                child: Container(
-                  alignment: Alignment.center,
-                  width: double.infinity,
-                  height: 50,
-                  child: Center(
-                    child: Text('Wallpaper set completed', style: TextStyle(
-                      color: Colors.black
-
-                      ),),
+              Stack(
+                children: [
+                  Container(
+                    height: 50,
+                    width: double.infinity,
+                    color: Colors.black.withOpacity(0.1),
                   ),
-                ),
+                  AnimatedContainer(
+                    duration: Duration(
+                      milliseconds: 50,
+                    ),
+                    height: 50,
+                    width: progWidth,
+                    color: Colors.cyan,
+                  ),
+
+                  Container(
+                      alignment: Alignment.center,
+                      width: double.infinity,
+                      height: 50,
+                      child: Center(
+                        child: Text(progressText, style: TextStyle(
+                          color: Colors.black
+                          ),),
+                      ),
+                    ),
+                ],
               )
 
             ],
